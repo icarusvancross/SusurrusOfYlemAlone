@@ -9,19 +9,32 @@ class PlayerController {
         this.moveSpeed = 0.08;
         this.rotationX = 0;
         
-        // حالات الأكشن
         this.isAiming = false;
-        this.isKnifing = false;
+        this.isKnifing = false; // لمنع السبام
+        this.canShoot = true;
 
-        // إعداد الليزر
-        this.raycaster = new THREE.Raycaster();
+        // 1. إعداد الليزر (شعاع حقيقي)
         this.laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
         this.laserGeometry = new THREE.BufferGeometry();
         this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
         this.scene.add(this.laser);
         this.laser.visible = false;
 
-        // استماع المفاتيح
+        // 2. إعداد أثر السكين (Slash)
+        const slashGeo = new THREE.PlaneGeometry(1.5, 0.5);
+        const slashMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide });
+        this.slash = new THREE.Mesh(slashGeo, slashMat);
+        this.player.add(this.slash);
+        this.slash.position.set(0, 1.2, -1.2); // أمام اللاعب
+
+        // 3. إعداد وميض الإطلاق (Muzzle Flash)
+        const flashGeo = new THREE.SphereGeometry(0.2);
+        const flashMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        this.muzzleFlash = new THREE.Mesh(flashGeo, flashMat);
+        this.player.add(this.muzzleFlash);
+        this.muzzleFlash.position.set(0.5, 1.2, -1);
+        this.muzzleFlash.visible = false;
+
         window.addEventListener('keydown', (e) => this.keys[e.code] = true);
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
         this.canvas.addEventListener('mousedown', () => this.canvas.requestPointerLock());
@@ -36,18 +49,16 @@ class PlayerController {
     }
 
     update() {
-        // 1. ميكانيكية السكين (C) - ضربة فورية
+        // ميكانيكية السكين (C) مع نظام الحماية من السبام
         if (this.keys['KeyC'] && !this.isKnifing) {
             this.performKnifeAttack();
         }
 
-        // 2. ميكانيكية التصويب (X)
+        // ميكانيكية التصويب (X) والإطلاق (V)
         if (this.keys['KeyX']) {
             this.isAiming = true;
             document.getElementById('crosshair').style.display = 'block';
-            
-            // 3. ميكانيكية الإطلاق (V) - فقط أثناء التصويب
-            if (this.keys['KeyV']) {
+            if (this.keys['KeyV'] && this.canShoot) {
                 this.shoot();
             }
         } else {
@@ -55,7 +66,6 @@ class PlayerController {
             document.getElementById('crosshair').style.display = 'none';
         }
 
-        // الحركة (تعطيل المشي أثناء التصويب أو السكين)
         if (!this.isAiming && !this.isKnifing) {
             if (this.keys['KeyW']) this.player.translateZ(-this.moveSpeed);
             if (this.keys['KeyS']) this.player.translateZ(this.moveSpeed);
@@ -76,29 +86,32 @@ class PlayerController {
         this.laser.visible = true;
         const gunPos = this.player.position.clone().add(new THREE.Vector3(0.5, 1.2, -0.5).applyQuaternion(this.player.quaternion));
         const targetDir = new THREE.Vector3(0, this.rotationX, -1).applyQuaternion(this.player.quaternion).normalize();
-        this.raycaster.set(gunPos, targetDir);
-        const intersects = this.raycaster.intersectObjects(this.scene.children);
-        let laserEnd = gunPos.clone().add(targetDir.multiplyScalar(20));
-        if (intersects.length > 0) laserEnd = intersects[0].point;
+        const laserEnd = gunPos.clone().add(targetDir.multiplyScalar(30));
         this.laser.geometry.setFromPoints([gunPos, laserEnd]);
     }
 
     shoot() {
-        // تأثير بصري بسيط عند الإطلاق (تغيير لون الليزر مؤقتاً)
-        this.laser.material.color.setHex(0xffffff);
-        setTimeout(() => this.laser.material.color.setHex(0xff0000), 50);
-        console.log("إطلاق نار!"); 
+        this.canShoot = false;
+        this.muzzleFlash.visible = true;
+        this.laser.material.color.setHex(0xffff00); // تغيير لون الليزر للحظة
+        
+        setTimeout(() => {
+            this.muzzleFlash.visible = false;
+            this.laser.material.color.setHex(0xff0000);
+            this.canShoot = true;
+        }, 100);
     }
 
     performKnifeAttack() {
         this.isKnifing = true;
-        // أنيميشن سكين: ميلان المكعب للأمام بسرعة
-        this.player.rotation.x = -0.5;
+        this.slash.material.opacity = 1;
+        this.slash.rotation.z = Math.random() * Math.PI; // زاوية عشوائية للأثر
+
         setTimeout(() => {
-            this.player.rotation.x = 0;
-            this.isKnifing = false;
-        }, 200);
-        console.log("ضربة سكين!");
+            this.slash.material.opacity = 0;
+            // Cooldown: لا يمكنه الضرب مرة أخرى إلا بعد نصف ثانية
+            setTimeout(() => { this.isKnifing = false; }, 300);
+        }, 100);
     }
 
     updateCamera() {
