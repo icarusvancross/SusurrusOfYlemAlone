@@ -8,10 +8,12 @@ class PlayerController {
         
         // سمات اللاعب
         this.health = 100;
-        this.currentAmmo = 9;
-        this.maxAmmo = 50;
-        this.isInventoryOpen = false;
+        this.currentClip = 9;
+        this.clipSize = 10;
+        this.totalAmmo = 50;
         
+        this.isInventoryOpen = false;
+        this.isReloading = false;
         this.lookSpeed = 0.002;
         this.moveSpeed = 0.08;
         this.rotationX = 0;
@@ -23,7 +25,8 @@ class PlayerController {
 
         window.addEventListener('keydown', (e) => {
             this.keys[e.code] = true;
-            if (e.code === 'KeyI' || e.code === 'Tab') this.toggleInventory();
+            if (e.code === 'KeyI') this.toggleInventory();
+            if (e.code === 'KeyR') this.reload();
         });
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
         this.canvas.addEventListener('mousedown', () => { if(!this.isInventoryOpen) this.canvas.requestPointerLock(); });
@@ -53,14 +56,29 @@ class PlayerController {
         this.isInventoryOpen = !this.isInventoryOpen;
         const inv = document.getElementById('inventory-overlay');
         inv.style.display = this.isInventoryOpen ? 'flex' : 'none';
-        
         if(this.isInventoryOpen) {
-            document.getElementById('inv-ammo-text').innerText = `AMMO: ${this.currentAmmo} / ${this.maxAmmo}`;
+            document.getElementById('inv-ammo-text').innerText = `AMMO: ${this.currentClip} / ${this.totalAmmo}`;
             document.getElementById('inv-hp-text').innerText = `CONDITION: ${this.getHPStatus()}`;
             document.exitPointerLock();
         } else {
             this.canvas.requestPointerLock();
         }
+    }
+
+    reload() {
+        if (this.isReloading || this.currentClip === this.clipSize || this.totalAmmo <= 0) return;
+        this.isReloading = true;
+        this.canShoot = false;
+        console.log("Reloading...");
+        
+        setTimeout(() => {
+            let needed = this.clipSize - this.currentClip;
+            let reloadAmount = Math.min(needed, this.totalAmmo);
+            this.currentClip += reloadAmount;
+            this.totalAmmo -= reloadAmount;
+            this.isReloading = false;
+            this.canShoot = true;
+        }, 1500); // وقت التعمير 1.5 ثانية
     }
 
     getHPStatus() {
@@ -72,49 +90,41 @@ class PlayerController {
 
     update() {
         if (this.isInventoryOpen) return;
-
         this.updateHUD();
-
         if (this.keys['KeyC'] && !this.isKnifing) this.performKnife();
-
         if (this.keys['KeyX']) {
             this.isAiming = true;
-            if (this.keys['KeyV'] && this.canShoot && this.currentAmmo > 0) this.shoot();
-        } else {
-            this.isAiming = false;
-        }
+            if (this.keys['KeyV'] && this.canShoot && this.currentClip > 0) this.shoot();
+        } else { this.isAiming = false; }
 
-        if (!this.isAiming && !this.isKnifing) {
+        if (!this.isAiming && !this.isKnifing && !this.isReloading) {
             if (this.keys['KeyW']) this.player.translateZ(-this.moveSpeed);
             if (this.keys['KeyS']) this.player.translateZ(this.moveSpeed);
             if (this.keys['KeyA']) this.player.translateX(-this.moveSpeed);
             if (this.keys['KeyD']) this.player.translateX(this.moveSpeed);
             this.laser.visible = false;
-        } else if (this.isAiming) {
-            this.updateLaser();
-        }
+        } else if (this.isAiming) { this.updateLaser(); }
         this.updateCamera();
     }
 
     shoot() {
         this.canShoot = false;
-        this.currentAmmo--;
+        this.currentClip--;
         this.laser.material.color.setHex(0xffffff);
         setTimeout(() => {
             this.laser.material.color.setHex(0xff0000);
-            setTimeout(() => { this.canShoot = true; }, 300);
+            setTimeout(() => { if(!this.isReloading) this.canShoot = true; }, 300);
         }, 50);
     }
 
     updateHUD() {
-        document.getElementById('ammo-count').innerText = `${this.currentAmmo} / ${this.maxAmmo}`;
+        document.getElementById('ammo-count').innerText = `${this.currentClip} / ${this.totalAmmo}`;
         const bar = document.getElementById('health-bar-fill');
         bar.style.width = this.health + "%";
-        
-        if (this.health >= 75) bar.style.backgroundColor = "#00ff00"; // أخضر
-        else if (this.health >= 50) bar.style.backgroundColor = "#0088ff"; // أزرق
-        else if (this.health >= 25) bar.style.backgroundColor = "#ffaa00"; // برتقالي
-        else bar.style.backgroundColor = "#ff0000"; // أحمر
+        if (this.health >= 75) bar.style.backgroundColor = "#00ff00";
+        else if (this.health >= 50) bar.style.backgroundColor = "#0088ff";
+        else if (this.health >= 25) bar.style.backgroundColor = "#ffaa00";
+        else bar.style.backgroundColor = "#ff0000";
     }
 
     performKnife() {
