@@ -10,30 +10,29 @@ class PlayerController {
         this.rotationX = 0;
         
         this.isAiming = false;
-        this.isKnifing = false; // لمنع السبام
+        this.isKnifing = false;
         this.canShoot = true;
 
-        // 1. إعداد الليزر (شعاع حقيقي)
-        this.laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        // 1. إعداد الليزر (شعاع لا يختفي)
+        this.laserMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.8 });
         this.laserGeometry = new THREE.BufferGeometry();
         this.laser = new THREE.Line(this.laserGeometry, this.laserMaterial);
         this.scene.add(this.laser);
         this.laser.visible = false;
 
-        // 2. إعداد أثر السكين (Slash)
-        const slashGeo = new THREE.PlaneGeometry(1.5, 0.5);
-        const slashMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide });
-        this.slash = new THREE.Mesh(slashGeo, slashMat);
-        this.player.add(this.slash);
-        this.slash.position.set(0, 1.2, -1.2); // أمام اللاعب
-
-        // 3. إعداد وميض الإطلاق (Muzzle Flash)
-        const flashGeo = new THREE.SphereGeometry(0.2);
-        const flashMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        this.muzzleFlash = new THREE.Mesh(flashGeo, flashMat);
-        this.player.add(this.muzzleFlash);
-        this.muzzleFlash.position.set(0.5, 1.2, -1);
-        this.muzzleFlash.visible = false;
+        // 2. إعداد نصل السكين (Blade Slash) - شكل معدني نحيف
+        const bladeGeo = new THREE.PlaneGeometry(1.2, 0.15);
+        const bladeMat = new THREE.MeshBasicMaterial({ 
+            color: 0xaaaaaa, // لون معدني
+            transparent: true, 
+            opacity: 0, 
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending 
+        });
+        this.blade = new THREE.Mesh(bladeGeo, bladeMat);
+        this.player.add(this.blade);
+        // مكان ثابت أمام "صدر" اللاعب
+        this.blade.position.set(0, 1.3, -1); 
 
         window.addEventListener('keydown', (e) => this.keys[e.code] = true);
         window.addEventListener('keyup', (e) => this.keys[e.code] = false);
@@ -43,27 +42,25 @@ class PlayerController {
             if (document.pointerLockElement === this.canvas) {
                 this.player.rotation.y -= e.movementX * this.lookSpeed;
                 this.rotationX -= e.movementY * this.lookSpeed;
-                this.rotationX = Math.max(-Math.PI/4, Math.min(Math.PI/4, this.rotationX));
+                this.rotationX = Math.max(-Math.PI/3, Math.min(Math.PI/3, this.rotationX));
             }
         });
     }
 
     update() {
-        // ميكانيكية السكين (C) مع نظام الحماية من السبام
+        // ميكانيكية السكين (C)
         if (this.keys['KeyC'] && !this.isKnifing) {
             this.performKnifeAttack();
         }
 
-        // ميكانيكية التصويب (X) والإطلاق (V)
+        // ميكانيكية التصويب (X)
         if (this.keys['KeyX']) {
             this.isAiming = true;
-            document.getElementById('crosshair').style.display = 'block';
             if (this.keys['KeyV'] && this.canShoot) {
                 this.shoot();
             }
         } else {
             this.isAiming = false;
-            document.getElementById('crosshair').style.display = 'none';
         }
 
         if (!this.isAiming && !this.isKnifing) {
@@ -84,41 +81,52 @@ class PlayerController {
 
     updateLaser() {
         this.laser.visible = true;
-        const gunPos = this.player.position.clone().add(new THREE.Vector3(0.5, 1.2, -0.5).applyQuaternion(this.player.quaternion));
-        const targetDir = new THREE.Vector3(0, this.rotationX, -1).applyQuaternion(this.player.quaternion).normalize();
-        const laserEnd = gunPos.clone().add(targetDir.multiplyScalar(30));
+        // نقطة الخروج من يمين اللاعب
+        const gunPos = this.player.position.clone().add(new THREE.Vector3(0.5, 1.3, -0.4).applyQuaternion(this.player.quaternion));
+        
+        // حساب اتجاه الليزر مع مراعاة حركة الماوس فوق وتحت (rotationX)
+        const targetDir = new THREE.Vector3(0, Math.tan(this.rotationX), -1).applyQuaternion(this.player.quaternion).normalize();
+        
+        const laserEnd = gunPos.clone().add(targetDir.multiplyScalar(40));
         this.laser.geometry.setFromPoints([gunPos, laserEnd]);
     }
 
     shoot() {
         this.canShoot = false;
-        this.muzzleFlash.visible = true;
-        this.laser.material.color.setHex(0xffff00); // تغيير لون الليزر للحظة
-        
+        this.laser.material.color.setHex(0xffffff); // ومضة بيضاء للشعاع
         setTimeout(() => {
-            this.muzzleFlash.visible = false;
             this.laser.material.color.setHex(0xff0000);
-            this.canShoot = true;
-        }, 100);
+            setTimeout(() => { this.canShoot = true; }, 200); // سرعة الطلقات
+        }, 50);
     }
 
     performKnifeAttack() {
         this.isKnifing = true;
-        this.slash.material.opacity = 1;
-        this.slash.rotation.z = Math.random() * Math.PI; // زاوية عشوائية للأثر
+        this.blade.material.opacity = 0.9;
+        this.blade.rotation.z = -0.5; // ميلان النصل للضربة
 
-        setTimeout(() => {
-            this.slash.material.opacity = 0;
-            // Cooldown: لا يمكنه الضرب مرة أخرى إلا بعد نصف ثانية
-            setTimeout(() => { this.isKnifing = false; }, 300);
-        }, 100);
+        // أنيميشن حركة السكين (سحب سريع لليسار)
+        let startTime = Date.now();
+        const animateKnife = () => {
+            let elapsed = Date.now() - startTime;
+            if (elapsed < 150) {
+                this.blade.position.x = Math.sin(elapsed * 0.1) * 0.5;
+                requestAnimationFrame(animateKnife);
+            } else {
+                this.blade.material.opacity = 0;
+                this.blade.position.x = 0;
+                setTimeout(() => { this.isKnifing = false; }, 250); // وقت الراحة بين الضربات
+            }
+        };
+        animateKnife();
     }
 
     updateCamera() {
-        const offset = this.isAiming ? new THREE.Vector3(0.4, 1.8, 2) : new THREE.Vector3(0.6, 2.2, 3.5);
+        const offset = this.isAiming ? new THREE.Vector3(0.4, 1.8, 2.5) : new THREE.Vector3(0.6, 2.2, 3.8);
         offset.applyQuaternion(this.player.quaternion);
         this.camera.position.lerp(this.player.position.clone().add(offset), 0.1);
-        const lookAtOffset = new THREE.Vector3(0, 1.5 + (this.isAiming ? this.rotationX * 2 : 0), -5);
+        
+        const lookAtOffset = new THREE.Vector3(0, 1.5 + (this.isAiming ? this.rotationX * 3 : 0), -5);
         lookAtOffset.applyQuaternion(this.player.quaternion);
         this.camera.lookAt(this.player.position.clone().add(lookAtOffset));
     }
