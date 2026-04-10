@@ -1,0 +1,24 @@
+body, html { 
+    margin: 0; padding: 0; overflow: hidden; 
+    background: #000; color: white; font-family: 'serif'; 
+}
+
+#game-container { width: 100vw; height: 100vh; }
+
+#fullscreen-btn { 
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+    padding: 12px 24px; background: rgba(0, 0, 0, 0.8); color: #fff; 
+    border: 1px solid #444; cursor: pointer; z-index: 1000; letter-spacing: 2px; 
+}
+
+#ui-layer { 
+    position: absolute; bottom: 20px; width: 100%; 
+    text-align: center; pointer-events: none; 
+    color: #ff0000; font-family: monospace; text-shadow: 2px 2px #000; 
+}
+
+#crosshair { 
+    position: fixed; top: 50%; left: 50%; width: 10px; height: 10px; 
+    background: red; border-radius: 50%; display: none; 
+    transform: translate(-50%, -50%); border: 1px solid white; box-shadow: 0 0 10px red; 
+}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Susurrus of Ylem Alone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button id="fullscreen-btn">ENTER THE ABYSS</button>
+    <div id="crosshair"></div>
+    <div id="game-container"></div>
+    
+    <div id="ui-layer">
+        <div id="status">STATUS: FINE</div>
+        <div id="ammo">AMMO: 9/50</div>
+    </div>
+
+    <!-- المكتبات الخارجية -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- ملفاتنا البرمجية (الترتيب هنا مهم جداً) -->
+    <script src="PlayerController.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
