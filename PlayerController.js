@@ -6,19 +6,18 @@ class PlayerController {
         this.canvas = canvas;
         this.inputMap = {};
         
-        // سماتك الأصلية
         this.health = 100;
         this.ammo = 9;
         this.isAiming = false;
         this.isInventoryOpen = false;
 
-        // تجهيز الليزر والسكين
         this.setupArsenal();
         this.setupInputs();
     }
 
     setupArsenal() {
-        this.laser = BABYLON.MeshBuilder.CreateLines("laser", {points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, 20)]}, this.scene);
+        // الليزر الأحمر
+        this.laser = BABYLON.MeshBuilder.CreateLines("laser", {points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, 40)]}, this.scene);
         this.laser.color = new BABYLON.Color3(1, 0, 0);
         this.laser.parent = this.player;
         this.laser.position = new BABYLON.Vector3(0.3, 0.5, 0.2);
@@ -45,12 +44,14 @@ class PlayerController {
     update() {
         if (this.isInventoryOpen) return;
 
-        let speed = 0.12;
+        // قراءة السرعة من السلايدر
+        let moveSpeed = document.getElementById("fly-sens").value / 200;
+        
         this.isAiming = this.inputMap["KeyX"];
         this.laser.isVisible = this.isAiming;
 
-        // زوم الكاميرا عند التصويب (منطقك الأصلي)
-        this.camera.radius = this.isAiming ? 3 : 7;
+        // زوم التصويب
+        this.camera.radius = BABYLON.Scalar.Lerp(this.camera.radius, this.isAiming ? 4 : 8, 0.1);
 
         if (!this.isAiming) {
             let forward = this.camera.getForwardRay().direction;
@@ -64,8 +65,8 @@ class PlayerController {
             if (this.inputMap["KeyD"]) move.addInPlace(right.scale(-1));
 
             if (move.length() > 0) {
-                this.player.moveWithCollisions(move.scale(speed));
-                this.player.rotation.y = Math.atan2(move.x, move.z);
+                this.player.moveWithCollisions(move.scale(moveSpeed));
+                this.player.rotation.y = BABYLON.Scalar.LerpAngle(this.player.rotation.y, Math.atan2(move.x, move.z), 0.15);
             }
         }
         this.updateHUD();

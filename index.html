@@ -1,58 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-    <title>Susurrus Of Ylem Alone - Engine V7.0</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Susurrus Of Ylem Alone - Engine V7.5</title>
+    
+    <!-- ربط ملف التصميم الخارجي -->
     <link rel="stylesheet" href="style.css">
-    <!-- مكتبات Babylon.js الضرورية -->
+
+    <!-- مكتبات Babylon.js المحرك الأساسي -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
 </head>
 <body>
+
+    <!-- ساحة العرض (Canvas) -->
     <canvas id="renderCanvas"></canvas>
 
-    <!-- واجهة المحرر (Editor UI) -->
+    <!-- شريط الأدوات العلوي (Editor Toolbar) -->
     <div id="toolbar">
-        <div class="logo">SUSURRUS ENGINE <span>V7.0</span></div>
-        <div class="actions">
-            <button id="btn-start-game" class="btn-play">START GAME</button>
-            <button id="btn-toggle-assets">ASSETS & SETTINGS</button>
+        <div style="color: #d4a373; font-weight: bold; font-family: sans-serif;">
+            SUSURRUS ENGINE <span style="color:white; font-size: 10px;">V7.5</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main btn-play" id="btn-start-game">START GAME</button>
+            <button class="btn-main" id="btn-toggle-assets">ASSETS & SETTINGS</button>
+            <button class="btn-main" onclick="toggleFullscreen()" style="background:#333; color:white;">FULLSCREEN</button>
         </div>
     </div>
 
-    <!-- البردة الجانبية -->
+    <!-- البردة الجانبية (Settings & Assets) -->
     <div id="side-panel">
-        <div class="settings">
-            <label>Mouse Sensitivity</label>
+        <div class="setting-item">
+            <label>Rotation Sensitivity</label>
             <input type="range" id="rot-sens" min="500" max="5000" value="2000">
         </div>
-        <h3>ASSET LIBRARY</h3>
-        <div id="asset-browser"><div id="file-list">Scanning...</div></div>
+        <div class="setting-item">
+            <label>Movement / Fly Speed</label>
+            <input type="range" id="fly-sens" min="1" max="100" value="30">
+        </div>
+        
+        <hr style="border:0; border-top: 1px solid #333; margin: 20px 0;">
+        
+        <h3 style="font-size: 13px; color: #d4a373; margin-bottom: 10px; text-align: center;">ASSET LIBRARY</h3>
+        <div id="asset-browser">
+            <div id="file-list">Scanning GitHub...</div>
+        </div>
+
+        <!-- معلومات الغرض المختار للإضافة -->
+        <div id="asset-info" style="display:none; margin-top:15px; border:1px solid #d4a373; padding:10px; background: rgba(212,163,115,0.1);">
+            <div id="selected-name" style="font-size:11px; margin-bottom:8px; font-weight:bold;">File.glb</div>
+            <button class="btn-main" id="spawn-btn" style="width:100%">ADD TO WORLD</button>
+        </div>
     </div>
 
-    <!-- واجهة اللعب (Game UI - مأخوذة من مشروعك القديم) -->
+    <!-- واجهة اللعب (Game HUD) - تظهر فقط عند ضغط Start Game -->
     <div id="game-ui">
-        <div class="health-container"><div id="health-bar-fill"></div></div>
+        <div class="health-container">
+            <div id="health-bar-fill"></div>
+        </div>
         <div id="ammo-count">9 / 50</div>
-        <div id="controls-hint">[WASD] Move | [X] Aim | [C] Knife | [I] Inventory</div>
+        <div id="controls-hint">
+            [WASD] Move | [X] Aim | [C] Knife | [I] Inventory | [ESC] Editor
+        </div>
     </div>
 
-    <!-- نظام الشنطة (Inventory - مأخوذ من مشروعك القديم) -->
+    <!-- نظام الشنطة (Inventory Overlay) -->
     <div id="inventory-overlay">
         <div class="inventory-window">
-            <h2>INVENTORY</h2>
+            <h2 style="color: #f00; border-bottom: 1px solid #400; margin-top: 0;">INVENTORY</h2>
             <div class="inv-grid">
                 <div class="inv-item active">🔫 HANDGUN (9mm)</div>
                 <div class="inv-item">🔪 COMBAT KNIFE</div>
                 <div class="inv-item">🌿 GREEN HERB</div>
             </div>
-            <p id="inv-ammo-text">AMMO: 9 / 50</p>
-            <button onclick="document.getElementById('inventory-overlay').style.display='none'">CLOSE [I]</button>
+            <div style="margin-bottom: 20px;">
+                <p id="inv-ammo-text" style="color:#f00; font-size: 18px;">AMMO: 9 / 50</p>
+            </div>
+            <button class="btn-main" onclick="document.getElementById('inventory-overlay').style.display='none'" style="width:100%">CLOSE [I]</button>
         </div>
     </div>
 
-    <!-- استدعاء ملفات البرمجة بالترتيب -->
+    <!-- استدعاء ملفات البرمجة (الترتيب مهم جداً) -->
     <script src="PlayerController.js"></script>
     <script src="main.js"></script>
+
 </body>
 </html>
