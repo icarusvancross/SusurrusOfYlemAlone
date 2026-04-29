@@ -1,52 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SusurrusOfYlemAlone Engine v3.6</title>
+    <title>SusurrusOfYlemAlone Engine v4.0</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
         body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .panel { pointer-events: auto; background: rgba(10,10,15,0.9); border: 1px solid #333; border-radius: 8px; padding: 15px; }
-        #top-info { position: absolute; top: 10px; left: 10px; border-left: 4px solid #d4a373; }
-        #asset-browser { position: absolute; top: 10px; right: 10px; width: 240px; height: 70%; overflow-y: auto; }
-        #asset-info { position: absolute; bottom: 20px; right: 10px; width: 240px; display: none; border-bottom: 4px solid #d4a373; }
-        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; }
-        .asset-item:hover { border-color: #d4a373; background: #222; }
-        .btn-spawn { width: 100%; background: #d4a373; color: #000; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #loading-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: #d4a373; background: rgba(0,0,0,0.8); padding: 5px 20px; border-radius: 20px; display: none; }
-        .key-hint { color: #d4a373; font-weight: bold; }
+        
+        /* نظام البردة (Top Shade) */
+        #top-shade { position: absolute; top: -75%; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.95); border-bottom: 2px solid #d4a373; transition: top 0.4s cubic-bezier(0.075, 0.82, 0.165, 1); z-index: 100; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        #top-shade.open { top: 0; }
+        #shade-handle { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 120px; height: 30px; background: #d4a373; color: #000; border-radius: 0 0 10px 10px; cursor: pointer; text-align: center; font-weight: bold; font-size: 12px; line-height: 30px; pointer-events: auto; }
+        
+        .shade-content { display: flex; justify-content: space-around; height: 100%; }
+        .column { width: 45%; display: flex; flex-direction: column; }
+        
+        /* متصفح الأصول داخل البردة */
+        #asset-browser { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; border: 1px solid #333; }
+        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; }
+        .asset-item:hover { border-color: #d4a373; }
+
+        /* أزرار التحكم الثابتة */
+        #ui-static { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 15px; align-items: center; z-index: 10; pointer-events: auto; }
+        .btn-tool { background: rgba(0,0,0,0.7); border: 1px solid #d4a373; color: #d4a373; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-tool:hover { background: #d4a373; color: #000; }
+        
+        #asset-info { position: absolute; bottom: 80px; right: 20px; width: 200px; background: rgba(0,0,0,0.9); border: 1px solid #d4a373; padding: 15px; border-radius: 8px; display: none; }
+        
+        .slider-box { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #d4a373; }
     </style>
 </head>
 <body>
 
     <canvas id="renderCanvas"></canvas>
 
-    <div id="ui-layer">
-        <div id="top-info" class="panel">
-            <h2 style="margin:0; font-size: 18px;">TACTICAL ENGINE <span style="color:#d4a373">V3.6</span></h2>
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
-            <p style="font-size: 12px;"><span class="key-hint">Shift + WASD</span>: Fly</p>
-            <p style="font-size: 12px;"><span class="key-hint">G | R | S</span>: Gizmos</p>
-            <p style="font-size: 12px;"><span class="key-hint">CTRL + D</span>: Duplicate</p>
+    <!-- البردة (Shade UI) -->
+    <div id="top-shade">
+        <div class="shade-content">
+            <div class="column">
+                <h2 style="margin:0;">TACTICAL ENGINE <span style="color:#d4a373">V4.0</span></h2>
+                <p style="opacity:0.5; font-size: 12px;">Work Mode: Laptop Trackpad Optimized</p>
+                <div class="slider-box">
+                    <label>Camera Sensitivity</label>
+                    <input type="range" id="sens-slider" min="500" max="5000" value="2000">
+                </div>
+                <p style="font-size: 11px; margin-top:20px;">[Right Click] Rotate Camera<br>[Shift + WASD] Fly in View Direction<br>[G, R, S] Gizmos | [CTRL+D] Duplicate</p>
+            </div>
+            <div class="column">
+                <h3 style="font-size: 14px; color:#d4a373;">ASSET LIBRARY</h3>
+                <div id="asset-browser">
+                    <div id="file-list">Scanning...</div>
+                </div>
+            </div>
         </div>
+        <div id="shade-handle">ASSETS & SETTINGS</div>
+    </div>
 
-        <div id="asset-browser" class="panel">
-            <h3 style="font-size: 14px; text-align: center; margin-top:0;">ASSET LIBRARY</h3>
-            <div id="file-list"></div>
-        </div>
+    <!-- التحكم السفلي الثابت -->
+    <div id="ui-static">
+        <button class="btn-tool" onclick="toggleFullscreen()">FULLSCREEN MODE</button>
+        <div style="font-size: 10px; color:#aaa;">SusurrusYlemAlone | Status: <span style="color:#0f0">Active</span></div>
+    </div>
 
-        <div id="asset-info" class="panel">
-            <h4 id="selected-name" style="margin:0; color:#d4a373;">File.glb</h4>
-            <button class="btn-spawn" id="spawn-btn">ADD TO WORLD</button>
-        </div>
-
-        <div id="loading-bar">DOWNLOADING: <span id="percent">0%</span></div>
+    <div id="asset-info">
+        <h4 id="selected-name" style="margin:0; color:#d4a373; font-size:14px;">File.glb</h4>
+        <button class="btn-tool" id="spawn-btn" style="width:100%; margin-top:10px;">ADD TO SCENE</button>
     </div>
 
     <script>
-        // إعدادات المستودع
         const GITHUB_USER = "icarusvancross";
         const GITHUB_REPO = "SusurrusOfYlemAlone";
         
@@ -58,33 +80,47 @@
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
-
-            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 20, BABYLON.Vector3.Zero(), scene);
+            
+            // كاميرا Unreal Style
+            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 5, -15), scene);
+            camera.setTarget(BABYLON.Vector3.Zero());
             camera.attachControl(canvas, true);
+            
+            // تفعيل الكليك يمين للتدوير فقط
+            camera.inputs.removeByType("FreeCameraKeyboardMoveInput"); // سنبرمج الحركة بأنفسنا
+            camera.inputs.removeByType("FreeCameraMouseInput");
+            
+            // إضافة مدخل ماوس مخصص (يمين فقط للتدوير)
+            const mouseInput = new BABYLON.FreeCameraMouseInput();
+            mouseInput.buttons = [2]; // 2 تعني كليك يمين
+            camera.inputs.add(mouseInput);
+            
+            // ضبط الحساسية من السلايدر
+            const sensSlider = document.getElementById("sens-slider");
+            camera.angularSensibility = sensSlider.value;
+            sensSlider.oninput = () => { camera.angularSensibility = sensSlider.value; };
 
-            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.6;
+            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.5;
             const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
             dirLight.intensity = 1.0;
 
-            // الأرضية السوداء المنقطة
             const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
             const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
             groundMat.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02);
             const noise = new BABYLON.NoiseProceduralTexture("noise", 512, scene);
-            noise.octaves = 8;
             groundMat.emissiveTexture = noise;
-            groundMat.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.08);
+            groundMat.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
             ground.material = groundMat;
 
             const gizmoManager = new BABYLON.GizmoManager(scene);
             gizmoManager.usePointerToAttachGizmos = true;
 
-            // نظام الحركة WASD + Shift
+            // نظام الحركة WASD + Shift (3D Flying)
             let inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = true;
-                if (evt.sourceEvent.ctrlKey && evt.sourceEvent.key.toLowerCase() === "d") evt.sourceEvent.preventDefault();
+                if (evt.sourceEvent.ctrlKey && evt.sourceEvent.key === "d") evt.sourceEvent.preventDefault();
             }));
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = false;
@@ -92,14 +128,17 @@
 
             scene.onBeforeRenderObservable.add(() => {
                 if (inputMap["shift"]) {
-                    let speed = 0.4;
-                    let forwards = camera.getForwardRay().direction;
-                    forwards.y = 0; forwards.normalize();
-                    let sideways = BABYLON.Vector3.Cross(forwards, BABYLON.Vector3.Up()).normalize();
-                    if (inputMap["w"]) camera.target.addInPlace(forwards.scale(speed));
-                    if (inputMap["s"]) camera.target.addInPlace(forwards.scale(-speed));
-                    if (inputMap["a"]) camera.target.addInPlace(sideways.scale(speed));
-                    if (inputMap["d"]) camera.target.addInPlace(sideways.scale(-speed));
+                    let speed = 0.5;
+                    let moveVector = BABYLON.Vector3.Zero();
+                    let forward = camera.getDirection(BABYLON.Vector3.Forward());
+                    let right = camera.getDirection(BABYLON.Vector3.Right());
+
+                    if (inputMap["w"]) moveVector.addInPlace(forward);
+                    if (inputMap["s"]) moveVector.addInPlace(forward.scale(-1));
+                    if (inputMap["a"]) moveVector.addInPlace(right.scale(-1));
+                    if (inputMap["d"]) moveVector.addInPlace(right);
+                    
+                    camera.position.addInPlace(moveVector.scale(speed));
                 }
             });
 
@@ -110,68 +149,49 @@
                 }
             };
 
-            // أزرار التحويل
             window.addEventListener("keydown", (e) => {
                 if (e.key === "g") { gizmoManager.positionGizmoEnabled = true; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "r") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = true; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "s") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = true; }
-                if (e.ctrlKey && e.key.toLowerCase() === "d") {
-                    if (selectedMesh) {
-                        let copy = selectedMesh.clone(selectedMesh.name + "_copy");
-                        copy.position.x += 3;
-                    }
+                if (e.ctrlKey && e.key.toLowerCase() === "d" && selectedMesh) {
+                    let copy = selectedMesh.clone(selectedMesh.name + "_copy");
+                    copy.position.x += 5;
                 }
             });
 
-            // --- إصلاح دالة جلب الملفات من GitHub ---
-            async function fetchAssets() {
-                const list = document.getElementById("file-list");
-                try {
-                    const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`);
-                    const files = await response.json();
-                    list.innerHTML = ""; 
+            // التحكم في "البردة"
+            const shade = document.getElementById("top-shade");
+            document.getElementById("shade-handle").onclick = () => { shade.classList.toggle("open"); };
 
+            // جلب ملفات GitHub
+            async function fetchAssets() {
+                try {
+                    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`);
+                    const files = await res.json();
+                    const list = document.getElementById("file-list");
+                    list.innerHTML = "";
                     files.forEach(f => {
-                        // التحقق من اسم الملف بشكل صحيح
                         if (f.name.toLowerCase().endsWith(".glb")) {
-                            let div = document.createElement("div");
-                            div.className = "asset-item";
-                            div.innerText = f.name;
-                            div.onclick = () => {
+                            let d = document.createElement("div");
+                            d.className = "asset-item"; d.innerText = f.name;
+                            d.onclick = () => {
                                 pendingAssetUrl = f.download_url;
                                 document.getElementById("selected-name").innerText = f.name;
                                 document.getElementById("asset-info").style.display = "block";
                             };
-                            list.appendChild(div);
+                            list.appendChild(d);
                         }
                     });
-                    
-                    if(list.innerHTML === "") list.innerHTML = "<p style='opacity:0.5; text-align:center;'>No .glb files found</p>";
-                } catch (err) {
-                    list.innerHTML = "<p style='color:red; text-align:center;'>GitHub Sync Error</p>";
-                    console.error(err);
-                }
+                } catch(e) { console.error("GitHub Fetch Fail"); }
             }
             fetchAssets();
 
-            // إضافة الموديل للعالم
             document.getElementById("spawn-btn").onclick = () => {
                 if (pendingAssetUrl) {
-                    document.getElementById("loading-bar").style.display = "block";
                     BABYLON.SceneLoader.ImportMesh("", "", pendingAssetUrl, scene, (meshes) => {
-                        // تجميع الموديل لضمان عمل الـ Gizmo في المنتصف
-                        let mainMesh = BABYLON.Mesh.MergeMeshes(meshes.filter(m => m.getTotalIndices() > 0), true, true, undefined, false, true);
-                        if(mainMesh) {
-                            mainMesh.position = camera.target.clone();
-                            selectedMesh = mainMesh;
-                        }
-                        document.getElementById("loading-bar").style.display = "none";
+                        let main = BABYLON.Mesh.MergeMeshes(meshes.filter(m => m.getTotalIndices() > 0), true, true, undefined, false, true);
+                        if(main) main.position = camera.position.add(camera.getDirection(BABYLON.Vector3.Forward()).scale(5));
                         document.getElementById("asset-info").style.display = "none";
-                    }, (evt) => {
-                        if (evt.lengthComputable) {
-                            let p = ((evt.loaded * 100) / evt.total).toFixed();
-                            document.getElementById("percent").innerText = p + "%";
-                        }
                     });
                 }
             };
@@ -182,6 +202,11 @@
         const scene = createScene();
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) { canvas.requestFullscreen(); } 
+            else { document.exitFullscreen(); }
+        }
     </script>
 </body>
 </html>
