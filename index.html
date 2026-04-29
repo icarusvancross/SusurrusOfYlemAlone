@@ -1,83 +1,96 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SusurrusOfYlemAlone Engine v3.0</title>
+    <title>SusurrusOfYlemAlone - Tactical Engine v3.5</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
     <style>
-        body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        #ui-top { position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.9); padding: 15px; border-radius: 8px; border-left: 5px solid #d4a373; pointer-events: none; }
-        #asset-browser { position: absolute; top: 10px; right: 10px; width: 220px; height: 80%; background: rgba(10,10,10,0.95); border: 1px solid #333; color: #eee; padding: 10px; border-radius: 8px; overflow-y: auto; }
-        #asset-info { position: absolute; bottom: 20px; right: 10px; width: 220px; background: rgba(10,10,10,0.95); border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; display: none; }
-        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; text-align: center; font-size: 13px; border: 1px solid #222; }
-        .asset-item:hover { background: #252525; border-color: #d4a373; }
-        .btn-spawn { width: 100%; background: #d4a373; color: #000; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        /* الواجهة الرئيسية */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .panel { pointer-events: auto; background: rgba(10,10,15,0.9); border: 1px solid #333; border-radius: 8px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        
+        #top-info { position: absolute; top: 10px; left: 10px; border-left: 4px solid #d4a373; }
+        #asset-browser { position: absolute; top: 10px; right: 10px; width: 240px; height: 70%; overflow-y: auto; }
+        #asset-info { position: absolute; bottom: 20px; right: 10px; width: 240px; display: none; border-bottom: 4px solid #d4a373; }
+        
+        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; transition: 0.2s; }
+        .asset-item:hover { border-color: #d4a373; background: #222; }
+        
+        .btn-spawn { width: 100%; background: #d4a373; color: #000; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; margin-top: 10px; }
+        .btn-spawn:active { transform: scale(0.98); }
+        
+        #loading-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); color: #d4a373; font-size: 12px; background: rgba(0,0,0,0.8); padding: 5px 20px; border-radius: 20px; display: none; }
+        .key-hint { color: #d4a373; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="ui-top">
-        <h2 style="margin:0; font-size: 18px; color:#d4a373;">TACTICAL ENGINE V3.0</h2>
-        <p style="font-size: 11px; opacity:0.6;">Auto-Sync: GitHub Repository</p>
-        <hr style="border:0; border-top:1px solid #333;">
-        <p style="font-size: 12px;">[Shift+WASD] Fly | [G,R,S] Gizmos</p>
-        <p style="font-size: 12px;">[CTRL+D] Duplicate Selected</p>
-    </div>
-
-    <div id="asset-browser">
-        <h3 style="font-size: 14px; text-align: center; color: #d4a373;">REMOTE ASSETS</h3>
-        <div id="file-list"><p style="text-align:center; font-size:12px; opacity:0.5;">Scanning GitHub...</p></div>
-    </div>
-
-    <div id="asset-info">
-        <h4 id="selected-name" style="margin:0; color:#d4a373;">None</h4>
-        <button class="btn-spawn" id="spawn-btn">ADD TO SCENE</button>
-    </div>
-
     <canvas id="renderCanvas"></canvas>
 
+    <div id="ui-layer">
+        <div id="top-info" class="panel">
+            <h2 style="margin:0; font-size: 18px;">TACTICAL ENGINE <span style="color:#d4a373">V3.5</span></h2>
+            <p style="font-size: 11px; opacity:0.6;">Project: SusurrusYlemAlone</p>
+            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+            <p style="font-size: 12px;"><span class="key-hint">Shift + WASD</span>: Camera Fly</p>
+            <p style="font-size: 12px;"><span class="key-hint">G | R | S</span>: Gizmos</p>
+            <p style="font-size: 12px;"><span class="key-hint">CTRL + D</span>: Duplicate</p>
+        </div>
+
+        <div id="asset-browser" class="panel">
+            <h3 style="font-size: 14px; text-align: center; margin-top:0;">ASSET LIBRARY</h3>
+            <div id="file-list"><p style="text-align:center; opacity:0.5;">Scanning GitHub...</p></div>
+        </div>
+
+        <div id="asset-info" class="panel">
+            <h4 id="selected-name" style="margin:0; color:#d4a373;">File.glb</h4>
+            <button class="btn-spawn" id="spawn-btn">ADD TO WORLD</button>
+        </div>
+
+        <div id="loading-bar">DOWNLOADING: <span id="percent">0%</span></div>
+    </div>
+
     <script>
-        // --- إعدادات المستودع (سيقرأ منها تلقائياً) ---
         const GITHUB_USER = "icarusvancross";
         const GITHUB_REPO = "SusurrusOfYlemAlone";
         
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
         let pendingAssetUrl = null;
-        let pendingAssetName = null;
 
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+            scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
+            
+            // ضباب خفيف للجمالية
+            scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+            scene.fogDensity = 0.01;
+            scene.fogColor = new BABYLON.Color3(0.01, 0.01, 0.02);
 
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 20, BABYLON.Vector3.Zero(), scene);
             camera.attachControl(canvas, true);
 
-            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-            light.intensity = 0.4;
+            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.6;
             const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
-            dirLight.intensity = 0.8;
+            dirLight.intensity = 1.2;
 
-            // --- الأرضية السوداء بنقاط (الرمل العاتم) ---
+            // أرضية رملية مطورة بنقاط
             const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
             const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-            groundMat.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02); // سواد عتم
-            
-            // محاكاة النقاط الصفراء والبيضاء
+            groundMat.diffuseColor = new BABYLON.Color3(0.05, 0.05, 0.05);
             const noise = new BABYLON.NoiseProceduralTexture("noise", 512, scene);
-            noise.octaves = 10;
-            noise.persistence = 0.8;
-            groundMat.emissiveTexture = noise; // جعل النقاط تضيء قليلاً
-            groundMat.emissiveColor = new BABYLON.Color3(0.2, 0.15, 0.1); // لون النقاط (ذهبي باهت)
-            
+            noise.octaves = 8;
+            groundMat.emissiveTexture = noise;
+            groundMat.emissiveColor = new BABYLON.Color3(0.15, 0.12, 0.1);
             ground.material = groundMat;
 
             const gizmoManager = new BABYLON.GizmoManager(scene);
             gizmoManager.usePointerToAttachGizmos = true;
 
-            // نظام الحركة WASD
+            // نظام الإدخال
             let inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
@@ -88,6 +101,7 @@
                 inputMap[evt.sourceEvent.key.toLowerCase()] = false;
             }));
 
+            // تحديث حركة الكاميرا
             scene.onBeforeRenderObservable.add(() => {
                 if (inputMap["shift"]) {
                     let speed = 0.4;
@@ -101,56 +115,67 @@
                 }
             });
 
-            // تدبيل CTRL+D
+            // اختيار الأشياء والتحكم بها
             let selectedMesh = null;
-            scene.onPointerDown = (evt, pickResult) => { if (pickResult.hit) selectedMesh = pickResult.pickedMesh; };
+            scene.onPointerDown = (evt, pickResult) => {
+                if (pickResult.hit && pickResult.pickedMesh.name !== "ground") {
+                    selectedMesh = pickResult.pickedMesh;
+                }
+            };
+
             window.addEventListener("keydown", (e) => {
                 if (e.key === "g") { gizmoManager.positionGizmoEnabled = true; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "r") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = true; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "s") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = true; }
                 if (e.ctrlKey && e.key.toLowerCase() === "d") {
-                    if (selectedMesh && selectedMesh.name !== "ground") {
+                    if (selectedMesh) {
                         let copy = selectedMesh.clone(selectedMesh.name + "_copy");
                         copy.position.x += 3;
                     }
                 }
             });
 
-            // --- وظيفة مسح GitHub التلقائية ---
-            async function scanGitHubAssets() {
-                const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`;
-                try {
-                    const response = await fetch(url);
-                    const files = await response.json();
-                    const listContainer = document.getElementById("file-list");
-                    listContainer.innerHTML = ""; // مسح رسالة التحميل
-
-                    files.forEach(file => {
-                        if (file.name.endsWith(".glb")) {
-                            const item = document.createElement("div");
-                            item.className = "asset-item";
-                            item.innerText = file.name;
-                            item.onclick = () => {
-                                pendingAssetUrl = file.download_url;
-                                pendingAssetName = file.name;
-                                document.getElementById("selected-name").innerText = file.name;
-                                document.getElementById("asset-info").style.display = "block";
-                            };
-                            listContainer.appendChild(item);
-                        }
-                    });
-                } catch (e) {
-                    document.getElementById("file-list").innerText = "GitHub Sync Error";
-                }
+            // مسح ملفات GitHub
+            async function fetchAssets() {
+                const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`);
+                const files = await response.json();
+                const list = document.getElementById("file-list");
+                list.innerHTML = "";
+                files.forEach(f => {
+                    if (file.name.endsWith(".glb")) {
+                        let div = document.createElement("div");
+                        div.className = "asset-item";
+                        div.innerText = f.name;
+                        div.onclick = () => {
+                            pendingAssetUrl = f.download_url;
+                            document.getElementById("selected-name").innerText = f.name;
+                            document.getElementById("asset-info").style.display = "block";
+                        };
+                        list.appendChild(div);
+                    }
+                });
             }
+            fetchAssets().catch(err => console.log("GitHub limit reached or error"));
 
-            scanGitHubAssets();
-
+            // إضافة الموديل وإصلاح الـ Center تلقائياً
             document.getElementById("spawn-btn").onclick = () => {
                 if (pendingAssetUrl) {
+                    document.getElementById("loading-bar").style.display = "block";
                     BABYLON.SceneLoader.ImportMesh("", "", pendingAssetUrl, scene, (meshes) => {
-                        meshes[0].position = camera.target.clone();
+                        // تجميع الأجزاء في حاوية واحدة لضمان عمل الـ Gizmo في المركز
+                        let mainMesh = BABYLON.Mesh.MergeMeshes(meshes.filter(m => m.getTotalIndices() > 0), true, true, undefined, false, true);
+                        if(mainMesh) {
+                            mainMesh.setPivotPoint(mainMesh.getBoundingInfo().boundingBox.centerWorld);
+                            mainMesh.position = camera.target.clone();
+                            selectedMesh = mainMesh;
+                        }
+                        document.getElementById("loading-bar").style.display = "none";
                         document.getElementById("asset-info").style.display = "none";
+                    }, (evt) => {
+                        if (evt.lengthComputable) {
+                            let p = ((evt.loaded * 100) / evt.total).toFixed();
+                            document.getElementById("percent").innerText = p + "%";
+                        }
                     });
                 }
             };
@@ -159,8 +184,8 @@
         };
 
         const scene = createScene();
-        engine.runRenderLoop(() => { scene.render(); });
-        window.addEventListener("resize", () => { engine.resize(); });
+        engine.runRenderLoop(() => scene.render());
+        window.addEventListener("resize", () => engine.resize());
     </script>
 </body>
 </html>
