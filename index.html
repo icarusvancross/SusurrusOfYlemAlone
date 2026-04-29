@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RE4 Tactical Lab</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <style>
+        body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000; }
+        #renderCanvas { width: 100%; height: 100%; }
+        #ui { position: absolute; top: 10px; left: 10px; color: #4af; font-family: monospace; pointer-events: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h2>RE4 TACTICAL LAB V1</h2>
+        <p>> Gizmos: G (Move) | R (Rotate) | S (Scale)</p>
+        <p>> Target: Bigtree.glb</p>
+    </div>
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+
+        const createScene = function () {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.05, 1);
+
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 10, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.8;
+
+            const grid = BABYLON.MeshBuilder.CreateGround("grid", {width: 50, height: 50}, scene);
+            const gridMat = new BABYLON.StandardMaterial("gridMat", scene);
+            gridMat.wireframe = true;
+            gridMat.alpha = 0.2;
+            grid.material = gridMat;
+
+            const gizmoManager = new BABYLON.GizmoManager(scene);
+            gizmoManager.usePointerToAttachGizmos = true;
+
+            // تحميل الشجرة تلقائياً
+            BABYLON.SceneLoader.ImportMesh("", "", "Bigtree.glb", scene, function (meshes) {
+                meshes.forEach(mesh => {
+                    mesh.position = new BABYLON.Vector3(0, 0, 0);
+                });
+            });
+
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "g") { gizmoManager.positionGizmoEnabled = true; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = false; }
+                if (e.key === "r") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = true; gizmoManager.scaleGizmoEnabled = false; }
+                if (e.key === "s") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = true; }
+            });
+
+            return scene;
+        };
+
+        const scene = createScene();
+        engine.runRenderLoop(() => { scene.render(); });
+        window.addEventListener("resize", () => { engine.resize(); });
+    </script>
+</body>
+</html>
