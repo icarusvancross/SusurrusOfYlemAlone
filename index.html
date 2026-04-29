@@ -1,52 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SusurrusOfYlemAlone - Tactical Engine v2.0</title>
+    <title>SusurrusOfYlemAlone - Tactical Engine v2.5</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
     <style>
         body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #050505; font-family: 'Segoe UI', Tahoma, sans-serif; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        
-        /* واجهة المحرك الرئيسية */
-        #ui-top { position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 8px; border-left: 5px solid #555; pointer-events: none; z-index: 10; }
-        
-        /* متصفح الأصول */
+        #ui-top { position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 8px; border-left: 5px solid #d4a373; pointer-events: none; z-index: 10; }
         #asset-browser { position: absolute; top: 10px; right: 10px; width: 220px; height: 60%; background: rgba(15,15,15,0.95); border: 1px solid #333; color: #eee; padding: 10px; border-radius: 8px; overflow-y: auto; z-index: 10; }
-        
-        /* لوحة معلومات الغرض المختارة */
         #asset-info { position: absolute; bottom: 20px; right: 10px; width: 220px; background: rgba(15,15,15,0.95); border: 1px solid #444; color: #fff; padding: 15px; border-radius: 8px; display: none; z-index: 11; }
-        
         .asset-item { background: #222; padding: 12px; margin-bottom: 8px; border-radius: 4px; cursor: pointer; text-align: center; font-size: 13px; transition: 0.2s; border: 1px solid #333; }
-        .asset-item:hover { background: #333; border-color: #777; }
-        
-        .btn-spawn { width: 100%; background: #2a52be; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-spawn:hover { background: #3a62ce; }
-
-        .key-hint { color: #4af; font-weight: bold; }
+        .asset-item:hover { background: #333; border-color: #d4a373; }
+        .btn-spawn { width: 100%; background: #d4a373; color: black; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-spawn:hover { background: #e5b484; }
+        .key-hint { color: #d4a373; font-weight: bold; }
         hr { border: 0; border-top: 1px solid #333; margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div id="ui-top">
-        <h2 style="margin:0; font-size: 18px; color:#aaa;">TACTICAL ENGINE V2.0</h2>
+        <h2 style="margin:0; font-size: 18px; color:#d4a373;">TACTICAL ENGINE V2.5</h2>
         <hr>
         <p style="font-size: 12px;"><span class="key-hint">Shift + WASD</span>: Camera Fly</p>
-        <p style="font-size: 12px;"><span class="key-hint">G | R | S</span>: Transform Mesh</p>
+        <p style="font-size: 12px;"><span class="key-hint">G | R | S</span>: Transform</p>
         <p style="font-size: 12px;"><span class="key-hint">CTRL + D</span>: Duplicate</p>
     </div>
 
     <div id="asset-browser">
-        <h3 style="font-size: 14px; text-align: center; color: #888;">ASSETS</h3>
+        <h3 style="font-size: 14px; text-align: center; color: #888;">ASSET LIST</h3>
         <hr>
         <div id="file-list"></div>
     </div>
 
-    <!-- لوحة معاينة قبل التنزيل -->
     <div id="asset-info">
-        <h4 id="selected-name" style="margin:0; color:#4af;">None</h4>
-        <p style="font-size: 11px; opacity: 0.7;">Format: .GLB | Status: Ready</p>
+        <h4 id="selected-name" style="margin:0; color:#d4a373;">None</h4>
         <button class="btn-spawn" id="spawn-btn">ADD TO SCENE</button>
     </div>
 
@@ -56,47 +46,50 @@
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
 
-        // قائمة ملفاتك
-        const myAssets = ["Bigtree.glb"];
+        // أضف أسماء ملفاتك هنا يدوياً بعد رفعها لـ GitHub
+        const myAssets = ["Bigtree.glb"]; 
         let pendingAsset = null;
 
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
-            
-            // بيئة معتمة (Dark Foggy Environment)
             scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
-            scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
-            scene.fogDensity = 0.015;
-            scene.fogColor = new BABYLON.Color3(0.01, 0.01, 0.02);
 
-            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 20, BABYLON.Vector3.Zero(), scene);
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 25, BABYLON.Vector3.Zero(), scene);
             camera.attachControl(canvas, true);
 
-            const light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-1, -2, -1), scene);
-            light.position = new BABYLON.Vector3(20, 40, 20);
-            light.intensity = 0.8;
-            new BABYLON.HemisphericLight("light2", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.3;
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.5;
+            
+            const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
+            dirLight.intensity = 1.0;
 
-            // --- الأرضية الرملية العاتمة (Dark Sand) ---
+            // --- الأرضية الرملية المتطورة (Speckled Dark Sand) ---
             const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
             const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-            // لون رملي بني غامق مائل للرمادي
-            groundMat.diffuseColor = new BABYLON.Color3(0.25, 0.22, 0.18); 
-            groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
+            
+            // اللون الأساسي (أسود عتم)
+            groundMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            
+            // إضافة نقاط (تراب أصفر وذرات بيضاء) باستخدام Noise
+            const sandNoise = new BABYLON.NoiseProceduralTexture("sandNoise", 512, scene);
+            sandNoise.octaves = 8;
+            sandNoise.persistence = 1.5;
+            sandNoise.animationSpeedFactor = 0; // ثابتة لا تتحرك
+            
+            groundMat.ambientTexture = sandNoise; // ليعطي ملمس النقاط
+            groundMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.1); // لمعة خفيفة للنقاط الصفراء
+            
             ground.material = groundMat;
 
             const gizmoManager = new BABYLON.GizmoManager(scene);
             gizmoManager.usePointerToAttachGizmos = true;
 
-            // نظام الحركة (WASD)
+            // نظام الحركة WASD
             let inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = true;
-                // منع CTRL+D من فتح المفضلات
-                if (evt.sourceEvent.ctrlKey && evt.sourceEvent.key.toLowerCase() === "d") {
-                    evt.sourceEvent.preventDefault();
-                }
+                if (evt.sourceEvent.ctrlKey && evt.sourceEvent.key.toLowerCase() === "d") evt.sourceEvent.preventDefault();
             }));
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = false;
@@ -104,7 +97,7 @@
 
             scene.onBeforeRenderObservable.add(() => {
                 if (inputMap["shift"]) {
-                    let speed = 0.3;
+                    let speed = 0.4;
                     let forwards = camera.getForwardRay().direction;
                     forwards.y = 0; forwards.normalize();
                     let sideways = BABYLON.Vector3.Cross(forwards, BABYLON.Vector3.Up()).normalize();
@@ -115,18 +108,14 @@
                 }
             });
 
-            // تحكم الـ Gizmos والتدبيل CTRL+D
+            // تدبيل الأشياء
             let selectedMesh = null;
             scene.onPointerDown = (evt, pickResult) => { if (pickResult.hit) selectedMesh = pickResult.pickedMesh; };
-
             window.addEventListener("keydown", (e) => {
                 if (e.key === "g") { gizmoManager.positionGizmoEnabled = true; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "r") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = true; gizmoManager.scaleGizmoEnabled = false; }
                 if (e.key === "s") { gizmoManager.positionGizmoEnabled = false; gizmoManager.rotationGizmoEnabled = false; gizmoManager.scaleGizmoEnabled = true; }
-                
-                // التدبيل بـ CTRL + D
                 if (e.ctrlKey && e.key.toLowerCase() === "d") {
-                    e.preventDefault();
                     if (selectedMesh && selectedMesh.name !== "ground") {
                         let copy = selectedMesh.clone(selectedMesh.name + "_copy");
                         copy.position.x += 3;
@@ -134,7 +123,7 @@
                 }
             });
 
-            // إدارة متصفح الأصول (Asset Browser Logic)
+            // ربط الواجهة بالكود (Asset Browser)
             const listContainer = document.getElementById("file-list");
             const infoPanel = document.getElementById("asset-info");
             const selectedNameTxt = document.getElementById("selected-name");
@@ -152,11 +141,16 @@
                 listContainer.appendChild(item);
             });
 
+            // إصلاح وظيفة الزر
             spawnBtn.onclick = () => {
                 if (pendingAsset) {
+                    console.log("Attempting to load: " + pendingAsset);
                     BABYLON.SceneLoader.ImportMesh("", "./", pendingAsset, scene, (meshes) => {
                         meshes[0].position = camera.target.clone();
                         infoPanel.style.display = "none";
+                        console.log("Success!");
+                    }, null, (scene, message) => {
+                        alert("Error: Make sure " + pendingAsset + " is uploaded to GitHub!");
                     });
                 }
             };
