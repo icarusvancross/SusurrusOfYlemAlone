@@ -1,66 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SusurrusOfYlemAlone Engine v4.0</title>
+    <title>SusurrusOfYlemAlone Engine v4.5</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
         body, html { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: white; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        
-        /* نظام البردة (Top Shade) */
-        #top-shade { position: absolute; top: -75%; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.95); border-bottom: 2px solid #d4a373; transition: top 0.4s cubic-bezier(0.075, 0.82, 0.165, 1); z-index: 100; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        #top-shade { position: absolute; top: -75%; left: 0; width: 100%; height: 80%; background: rgba(10,10,15,0.95); border-bottom: 2px solid #d4a373; transition: top 0.4s ease; z-index: 100; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
         #top-shade.open { top: 0; }
-        #shade-handle { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 120px; height: 30px; background: #d4a373; color: #000; border-radius: 0 0 10px 10px; cursor: pointer; text-align: center; font-weight: bold; font-size: 12px; line-height: 30px; pointer-events: auto; }
-        
+        #shade-handle { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 150px; height: 30px; background: #d4a373; color: #000; border-radius: 0 0 10px 10px; cursor: pointer; text-align: center; font-weight: bold; font-size: 12px; line-height: 30px; pointer-events: auto; }
         .shade-content { display: flex; justify-content: space-around; height: 100%; }
         .column { width: 45%; display: flex; flex-direction: column; }
-        
-        /* متصفح الأصول داخل البردة */
-        #asset-browser { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; border: 1px solid #333; }
+        #asset-browser { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border: 1px solid #333; }
         .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; }
         .asset-item:hover { border-color: #d4a373; }
-
-        /* أزرار التحكم الثابتة */
-        #ui-static { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 15px; align-items: center; z-index: 10; pointer-events: auto; }
+        #ui-static { position: absolute; bottom: 20px; left: 20px; z-index: 10; pointer-events: auto; }
         .btn-tool { background: rgba(0,0,0,0.7); border: 1px solid #d4a373; color: #d4a373; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .btn-tool:hover { background: #d4a373; color: #000; }
-        
         #asset-info { position: absolute; bottom: 80px; right: 20px; width: 200px; background: rgba(0,0,0,0.9); border: 1px solid #d4a373; padding: 15px; border-radius: 8px; display: none; }
-        
-        .slider-box { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: #d4a373; }
     </style>
 </head>
 <body>
 
     <canvas id="renderCanvas"></canvas>
 
-    <!-- البردة (Shade UI) -->
     <div id="top-shade">
         <div class="shade-content">
             <div class="column">
-                <h2 style="margin:0;">TACTICAL ENGINE <span style="color:#d4a373">V4.0</span></h2>
-                <p style="opacity:0.5; font-size: 12px;">Work Mode: Laptop Trackpad Optimized</p>
-                <div class="slider-box">
-                    <label>Camera Sensitivity</label>
-                    <input type="range" id="sens-slider" min="500" max="5000" value="2000">
+                <h2 style="margin:0;">TACTICAL ENGINE <span style="color:#d4a373">V4.5</span></h2>
+                <p style="opacity:0.5; font-size: 12px;">Mode: Trackpad & Zoom Restored</p>
+                <div style="margin-top:10px;">
+                    <label style="font-size:12px; color:#d4a373;">Sensitivity</label><br>
+                    <input type="range" id="sens-slider" min="500" max="5000" value="1500" style="width:100%;">
                 </div>
-                <p style="font-size: 11px; margin-top:20px;">[Right Click] Rotate Camera<br>[Shift + WASD] Fly in View Direction<br>[G, R, S] Gizmos | [CTRL+D] Duplicate</p>
+                <p style="font-size: 11px; margin-top:20px;">
+                    - [Right Click + Drag] Rotate View<br>
+                    - [Scroll / Two-Finger Swipe] Zoom In/Out<br>
+                    - [Shift + WASD] Move Camera on Ground<br>
+                    - [Double Tap] Reset Focus
+                </p>
             </div>
             <div class="column">
                 <h3 style="font-size: 14px; color:#d4a373;">ASSET LIBRARY</h3>
-                <div id="asset-browser">
-                    <div id="file-list">Scanning...</div>
-                </div>
+                <div id="asset-browser"><div id="file-list">Scanning...</div></div>
             </div>
         </div>
         <div id="shade-handle">ASSETS & SETTINGS</div>
     </div>
 
-    <!-- التحكم السفلي الثابت -->
     <div id="ui-static">
-        <button class="btn-tool" onclick="toggleFullscreen()">FULLSCREEN MODE</button>
-        <div style="font-size: 10px; color:#aaa;">SusurrusYlemAlone | Status: <span style="color:#0f0">Active</span></div>
+        <button class="btn-tool" onclick="toggleFullscreen()">FULLSCREEN</button>
     </div>
 
     <div id="asset-info">
@@ -71,7 +60,6 @@
     <script>
         const GITHUB_USER = "icarusvancross";
         const GITHUB_REPO = "SusurrusOfYlemAlone";
-        
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
         let pendingAssetUrl = null;
@@ -81,33 +69,26 @@
             const scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
             
-            // كاميرا Unreal Style
-            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 5, -15), scene);
-            camera.setTarget(BABYLON.Vector3.Zero());
-            camera.attachControl(canvas, true);
-            
-            // تفعيل الكليك يمين للتدوير فقط
-            camera.inputs.removeByType("FreeCameraKeyboardMoveInput"); // سنبرمج الحركة بأنفسنا
-            camera.inputs.removeByType("FreeCameraMouseInput");
-            
-            // إضافة مدخل ماوس مخصص (يمين فقط للتدوير)
-            const mouseInput = new BABYLON.FreeCameraMouseInput();
-            mouseInput.buttons = [2]; // 2 تعني كليك يمين
-            camera.inputs.add(mouseInput);
-            
-            // ضبط الحساسية من السلايدر
+            // العودة لـ ArcRotateCamera (أفضل للزووم والتاتش باد)
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 20, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true, false, 2); // 2 تعني كليك يمين للتدوير
+            camera.wheelPrecision = 50; // سرعة الزووم بالبكرة
+            camera.lowerRadiusLimit = 1; // أقرب مسافة للزووم
+
             const sensSlider = document.getElementById("sens-slider");
-            camera.angularSensibility = sensSlider.value;
-            sensSlider.oninput = () => { camera.angularSensibility = sensSlider.value; };
+            camera.angularSensibilityX = camera.angularSensibilityY = sensSlider.value;
+            sensSlider.oninput = () => { camera.angularSensibilityX = camera.angularSensibilityY = sensSlider.value; };
 
             new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.5;
             const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
             dirLight.intensity = 1.0;
 
+            // الأرضية السوداء بنقاط
             const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
             const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
             groundMat.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02);
             const noise = new BABYLON.NoiseProceduralTexture("noise", 512, scene);
+            noise.octaves = 8;
             groundMat.emissiveTexture = noise;
             groundMat.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
             ground.material = groundMat;
@@ -115,7 +96,7 @@
             const gizmoManager = new BABYLON.GizmoManager(scene);
             gizmoManager.usePointerToAttachGizmos = true;
 
-            // نظام الحركة WASD + Shift (3D Flying)
+            // نظام حركة WASD + Shift
             let inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
@@ -129,20 +110,30 @@
             scene.onBeforeRenderObservable.add(() => {
                 if (inputMap["shift"]) {
                     let speed = 0.5;
-                    let moveVector = BABYLON.Vector3.Zero();
-                    let forward = camera.getDirection(BABYLON.Vector3.Forward());
-                    let right = camera.getDirection(BABYLON.Vector3.Right());
+                    let forward = camera.getForwardRay().direction;
+                    forward.y = 0; forward.normalize();
+                    let right = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), forward).normalize();
 
-                    if (inputMap["w"]) moveVector.addInPlace(forward);
-                    if (inputMap["s"]) moveVector.addInPlace(forward.scale(-1));
-                    if (inputMap["a"]) moveVector.addInPlace(right.scale(-1));
-                    if (inputMap["d"]) moveVector.addInPlace(right);
-                    
-                    camera.position.addInPlace(moveVector.scale(speed));
+                    if (inputMap["w"]) camera.target.addInPlace(forward.scale(speed));
+                    if (inputMap["s"]) camera.target.addInPlace(forward.scale(-speed));
+                    if (inputMap["a"]) camera.target.addInPlace(right.scale(speed));
+                    if (inputMap["d"]) camera.target.addInPlace(right.scale(-speed));
                 }
             });
 
-            // اختيار العناصر
+            // دبل تاب لإعادة التركيز (Double Tap logic)
+            let lastTap = 0;
+            canvas.addEventListener('pointerdown', (e) => {
+                let currentTime = new Date().getTime();
+                let tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    // إذا ضغط دبل تاب، يصفر مكان الكاميرا عند الهدف المختار
+                    if (selectedMesh) camera.setTarget(selectedMesh.position.clone());
+                    e.preventDefault();
+                }
+                lastTap = currentTime;
+            });
+
             scene.onPointerDown = (evt, pickResult) => {
                 if (pickResult.hit && pickResult.pickedMesh.name !== "ground") {
                     selectedMesh = pickResult.pickedMesh;
@@ -159,11 +150,9 @@
                 }
             });
 
-            // التحكم في "البردة"
             const shade = document.getElementById("top-shade");
             document.getElementById("shade-handle").onclick = () => { shade.classList.toggle("open"); };
 
-            // جلب ملفات GitHub
             async function fetchAssets() {
                 try {
                     const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/`);
@@ -182,7 +171,7 @@
                             list.appendChild(d);
                         }
                     });
-                } catch(e) { console.error("GitHub Fetch Fail"); }
+                } catch(e) { console.error("GitHub Fail"); }
             }
             fetchAssets();
 
@@ -190,7 +179,7 @@
                 if (pendingAssetUrl) {
                     BABYLON.SceneLoader.ImportMesh("", "", pendingAssetUrl, scene, (meshes) => {
                         let main = BABYLON.Mesh.MergeMeshes(meshes.filter(m => m.getTotalIndices() > 0), true, true, undefined, false, true);
-                        if(main) main.position = camera.position.add(camera.getDirection(BABYLON.Vector3.Forward()).scale(5));
+                        if(main) main.position = camera.target.clone();
                         document.getElementById("asset-info").style.display = "none";
                     });
                 }
@@ -204,8 +193,8 @@
         window.addEventListener("resize", () => engine.resize());
 
         function toggleFullscreen() {
-            if (!document.fullscreenElement) { canvas.requestFullscreen(); } 
-            else { document.exitFullscreen(); }
+            if (!document.fullscreenElement) canvas.requestFullscreen();
+            else document.exitFullscreen();
         }
     </script>
 </body>
