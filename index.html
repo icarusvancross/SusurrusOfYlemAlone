@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SusurrusOfYlemAlone Engine v4.5</title>
+    <title>SusurrusOfYlemAlone Engine v5.0</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
@@ -13,8 +13,8 @@
         .shade-content { display: flex; justify-content: space-around; height: 100%; }
         .column { width: 45%; display: flex; flex-direction: column; }
         #asset-browser { flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border: 1px solid #333; }
-        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; }
-        .asset-item:hover { border-color: #d4a373; }
+        .asset-item { background: #1a1a1a; padding: 12px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: center; border: 1px solid #222; font-size: 13px; }
+        .asset-item:hover { border-color: #d4a373; background: #222; }
         #ui-static { position: absolute; bottom: 20px; left: 20px; z-index: 10; pointer-events: auto; }
         .btn-tool { background: rgba(0,0,0,0.7); border: 1px solid #d4a373; color: #d4a373; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; }
         #asset-info { position: absolute; bottom: 80px; right: 20px; width: 200px; background: rgba(0,0,0,0.9); border: 1px solid #d4a373; padding: 15px; border-radius: 8px; display: none; }
@@ -27,22 +27,23 @@
     <div id="top-shade">
         <div class="shade-content">
             <div class="column">
-                <h2 style="margin:0;">TACTICAL ENGINE <span style="color:#d4a373">V4.5</span></h2>
-                <p style="opacity:0.5; font-size: 12px;">Mode: Trackpad & Zoom Restored</p>
+                <h2 style="margin:0;">TACTICAL ENGINE <span style="color:#d4a373">V5.0</span></h2>
+                <p style="opacity:0.5; font-size: 12px;">Unreal Fly Mode Active (X, Y, Z)</p>
                 <div style="margin-top:10px;">
-                    <label style="font-size:12px; color:#d4a373;">Sensitivity</label><br>
+                    <label style="font-size:12px; color:#d4a373;">Engine Sensitivity</label><br>
                     <input type="range" id="sens-slider" min="500" max="5000" value="1500" style="width:100%;">
                 </div>
-                <p style="font-size: 11px; margin-top:20px;">
-                    - [Right Click + Drag] Rotate View<br>
-                    - [Scroll / Two-Finger Swipe] Zoom In/Out<br>
-                    - [Shift + WASD] Move Camera on Ground<br>
-                    - [Double Tap] Reset Focus
+                <p style="font-size: 11px; margin-top:20px; line-height: 1.6;">
+                    - <span style="color:#d4a373">[Right Click]</span> Rotate (Unreal Style)<br>
+                    - <span style="color:#d4a373">[Shift + WASD]</span> Fly towards mouse look<br>
+                    - <span style="color:#d4a373">[Scroll]</span> Zoom In/Out<br>
+                    - <span style="color:#d4a373">[Double Tap]</span> Focus on Object<br>
+                    - <span style="color:#d4a373">[G, R, S]</span> Gizmos | <span style="color:#d4a373">[CTRL+D]</span> Duplicate
                 </p>
             </div>
             <div class="column">
                 <h3 style="font-size: 14px; color:#d4a373;">ASSET LIBRARY</h3>
-                <div id="asset-browser"><div id="file-list">Scanning...</div></div>
+                <div id="asset-browser"><div id="file-list">Scanning GitHub...</div></div>
             </div>
         </div>
         <div id="shade-handle">ASSETS & SETTINGS</div>
@@ -54,7 +55,7 @@
 
     <div id="asset-info">
         <h4 id="selected-name" style="margin:0; color:#d4a373; font-size:14px;">File.glb</h4>
-        <button class="btn-tool" id="spawn-btn" style="width:100%; margin-top:10px;">ADD TO SCENE</button>
+        <button class="btn-tool" id="spawn-btn" style="width:100%; margin-top:10px;">ADD TO WORLD</button>
     </div>
 
     <script>
@@ -69,11 +70,10 @@
             const scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
             
-            // العودة لـ ArcRotateCamera (أفضل للزووم والتاتش باد)
-            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 20, BABYLON.Vector3.Zero(), scene);
+            // الكاميرا المدارية مع دعم حركة Unreal
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 25, BABYLON.Vector3.Zero(), scene);
             camera.attachControl(canvas, true, false, 2); // 2 تعني كليك يمين للتدوير
-            camera.wheelPrecision = 50; // سرعة الزووم بالبكرة
-            camera.lowerRadiusLimit = 1; // أقرب مسافة للزووم
+            camera.wheelPrecision = 50;
 
             const sensSlider = document.getElementById("sens-slider");
             camera.angularSensibilityX = camera.angularSensibilityY = sensSlider.value;
@@ -83,10 +83,10 @@
             const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), scene);
             dirLight.intensity = 1.0;
 
-            // الأرضية السوداء بنقاط
-            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
+            // الأرضية السوداء
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, scene);
             const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-            groundMat.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+            groundMat.diffuseColor = new BABYLON.Color3(0.01, 0.01, 0.01);
             const noise = new BABYLON.NoiseProceduralTexture("noise", 512, scene);
             noise.octaves = 8;
             groundMat.emissiveTexture = noise;
@@ -96,7 +96,7 @@
             const gizmoManager = new BABYLON.GizmoManager(scene);
             gizmoManager.usePointerToAttachGizmos = true;
 
-            // نظام حركة WASD + Shift
+            // نظام حركة Unreal (X, Y, Z)
             let inputMap = {};
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
@@ -109,9 +109,12 @@
 
             scene.onBeforeRenderObservable.add(() => {
                 if (inputMap["shift"]) {
-                    let speed = 0.5;
+                    // حساب السرعة بناءً على السلايدر (كلما قل الرقم زادت السرعة هنا)
+                    let speed = (6000 - sensSlider.value) / 10000; 
+                    
+                    // المتجه الأمامي الكامل (بما في ذلك الارتفاع Y)
                     let forward = camera.getForwardRay().direction;
-                    forward.y = 0; forward.normalize();
+                    // المتجه الجانبي
                     let right = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), forward).normalize();
 
                     if (inputMap["w"]) camera.target.addInPlace(forward.scale(speed));
@@ -121,15 +124,12 @@
                 }
             });
 
-            // دبل تاب لإعادة التركيز (Double Tap logic)
+            // دبل تاب للتركيز
             let lastTap = 0;
             canvas.addEventListener('pointerdown', (e) => {
                 let currentTime = new Date().getTime();
-                let tapLength = currentTime - lastTap;
-                if (tapLength < 300 && tapLength > 0) {
-                    // إذا ضغط دبل تاب، يصفر مكان الكاميرا عند الهدف المختار
+                if (currentTime - lastTap < 300) {
                     if (selectedMesh) camera.setTarget(selectedMesh.position.clone());
-                    e.preventDefault();
                 }
                 lastTap = currentTime;
             });
