@@ -2,38 +2,34 @@
 class SceneManager {
     constructor(engine) {
         this.scene = new BABYLON.Scene(engine);
-        // تفعيل الفيزياء والاصطدامات
+        this.scene.clearColor = new BABYLON.Color4(0.2, 0.2, 0.3, 1); // خلفية زرقاء داكنة بدلاً من الأسود للتأكد
         this.scene.collisionsEnabled = true;
         this.setupEnvironment();
     }
 
     setupEnvironment() {
-        // لون الخلفية والضباب (الجحيم البارد)
-        this.scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
-        this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
-        this.scene.fogDensity = 0.01;
-        this.scene.fogColor = new BABYLON.Color3(0.01, 0.01, 0.02);
+        // إضاءة شاملة قوية جداً
+        const light = new BABYLON.HemisphericLight("HemiLight", new BABYLON.Vector3(0, 1, 0), this.scene);
+        light.intensity = 1.5;
 
-        // الإضاءة (إضاءة موجهة لإظهار الظلال كما في RE4)
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.scene);
-        light.intensity = 0.5;
-        
-        const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), this.scene);
-        dirLight.intensity = 0.8;
+        // إضاءة شمسية (Directional)
+        const dirLight = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-1, -2, -1), this.scene);
+        dirLight.position = new BABYLON.Vector3(20, 40, 20);
+        dirLight.intensity = 1.0;
 
-        // الأرضية (بني رملي صريح مع خاصية الاصطدام)
-        const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, this.scene);
+        // الأرضية
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100}, this.scene);
         const groundMat = new BABYLON.StandardMaterial("groundMat", this.scene);
-        groundMat.diffuseColor = Config.groundColor; 
-        
-        // إضافة ملمس خشن للأرضية
-        const noise = new BABYLON.NoiseProceduralTexture("noise", 512, this.scene);
-        groundMat.bumpTexture = noise;
-        
+        groundMat.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2); // بني صريح
         ground.material = groundMat;
-        
-        // تفعيل الاصطدام للأرضية لكي يمشي اللاعب عليها
         ground.checkCollisions = true;
         this.ground = ground;
+
+        // مكعب مرجعي في المنتصف للتأكد من الرؤية
+        const box = BABYLON.MeshBuilder.CreateBox("centerBox", {size: 2}, this.scene);
+        box.position.y = 1;
+        const boxMat = new BABYLON.StandardMaterial("boxMat", this.scene);
+        boxMat.diffuseColor = BABYLON.Color3.Red();
+        box.material = boxMat;
     }
 }
