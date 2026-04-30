@@ -8,32 +8,28 @@ const createScene = () => {
     scene.clearColor = new BABYLON.Color4(0.01, 0.01, 0.02, 1);
     scene.collisionsEnabled = true;
 
-    // كاميرا المحرر واللعب المدمجة
+    // كاميرا Unreal: كليك يمين للتدوير
     camera = new BABYLON.ArcRotateCamera("cam", -Math.PI/2, Math.PI/2.5, 30, BABYLON.Vector3.Zero(), scene);
-    camera.attachControl(canvas, true, false, 2); // كليك يمين للتدوير
+    camera.attachControl(canvas, true, false, 2); // 2 = Right Click
     camera.wheelPrecision = 50;
 
-    new BABYLON.HemisphericLight("light", BABYLON.Vector3.Up(), scene).intensity = 0.6;
+    new BABYLON.HemisphericLight("light", BABYLON.Vector3.Up(), scene).intensity = 0.7;
 
-    // الأرضية
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, scene);
     const groundMat = new BABYLON.StandardMaterial("gMat", scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.35, 0.3, 0.25);
+    groundMat.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2); // بني ترابي صريح
     ground.material = groundMat;
     ground.checkCollisions = true;
 
-    // اللاعب (اللون البني المحروق 0x4a1a1a)
     player = BABYLON.MeshBuilder.CreateBox("Leon", {height: 2, width: 0.8, depth: 0.5}, scene);
     const leonMat = new BABYLON.StandardMaterial("leonMat", scene);
-    leonMat.diffuseColor = new BABYLON.Color3(0.29, 0.1, 0.1); // تعادل 0x4a1a1a
+    leonMat.diffuseColor = new BABYLON.Color3(0.29, 0.1, 0.1); 
     player.material = leonMat;
     player.position.y = 1;
     player.checkCollisions = true;
-    player.ellipsoid = new BABYLON.Vector3(0.4, 1, 0.4);
 
     controller = new PlayerController(player, camera, scene, canvas);
 
-    // نظام مدخلات الطيران (Editor Mode)
     window.addEventListener("keydown", (e) => { inputMap[e.code] = true; });
     window.addEventListener("keyup", (e) => { inputMap[e.code] = false; });
 
@@ -44,20 +40,17 @@ scene = createScene();
 
 engine.runRenderLoop(() => {
     scene.render();
-    
-    // تحديث الحساسية من السلايدر
     camera.angularSensibilityX = camera.angularSensibilityY = document.getElementById("rot-sens").value;
 
     if (isPlayMode) {
         controller.update();
-        camera.target = player.position; // الكاميرا تتبع اللاعب
+        camera.target = player.position;
     } else {
-        // منطق طيران الكاميرا (Editor Mode)
-        if (inputMap["ShiftLeft"] || inputMap["ShiftRight"]) {
+        // طيران في وضع المحرر (Shift + WASD)
+        if (inputMap["ShiftLeft"]) {
             let speed = document.getElementById("fly-sens").value / 100;
-            let forward = camera.getForwardRay().direction;
+            let forward = camera.getForwardRay().direction; // طيران باتجاه الماوس (XYZ)
             let right = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), forward).normalize();
-            
             if (inputMap["KeyW"]) camera.target.addInPlace(forward.scale(speed));
             if (inputMap["KeyS"]) camera.target.addInPlace(forward.scale(-speed));
             if (inputMap["KeyA"]) camera.target.addInPlace(right.scale(speed));
@@ -66,19 +59,17 @@ engine.runRenderLoop(() => {
     }
 });
 
-// UI Actions
 document.getElementById("btn-start-game").onclick = () => {
     isPlayMode = true;
     document.getElementById("toolbar").style.display = "none";
     document.getElementById("side-panel").classList.remove("open");
     document.getElementById("game-ui").style.display = "block";
-    camera.radius = 8;
     canvas.requestPointerLock();
 };
 
 document.getElementById("btn-toggle-assets").onclick = () => document.getElementById("side-panel").classList.toggle("open");
 
-// جلب الأصول
+// جلب الملفات
 async function fetchAssets() {
     const res = await fetch(`https://api.github.com/repos/icarusvancross/SusurrusOfYlemAlone/contents/`);
     const files = await res.json();
