@@ -1,7 +1,43 @@
-<script src="src/config.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RE4 Web Engine - Toti Lab</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTexturesLibrary.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+
+    <div id="toolbar">
+        <button class="btn-main" id="btn-start-game">START GAME</button>
+        <button class="btn-main" onclick="toggleFullscreen()">FULLSCREEN</button>
+    </div>
+
+    <!-- تأكد أن هذا العنصر موجود لكي لا ينهار ui.js -->
+    <div id="side-panel"></div>
+
+    <div id="game-ui">
+        <div class="health-container"><div id="health-bar-fill"></div></div>
+        <div id="ammo-count">10 / 50</div>
+    </div>
+
+    <div id="inventory-overlay">
+        <div class="inventory-window">
+            <h2>INVENTORY</h2>
+            <button class="btn-main" onclick="toggleInventory()">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- الترتيب الهندسي الإلزامي -->
+    <script src="src/config.js"></script>
     <script src="src/input.js"></script>
     <script src="src/scene.js"></script>
     <script src="src/camera.js"></script>
     <script src="src/player.js"></script>
-    <script src="src/ui.js"></script> <!-- أضفناه هنا -->
+    <script src="src/ui.js"></script>
+    <script src="src/cinematics.js"></script>
     <script src="src/app.js"></script>
+</body>
+</html>
