@@ -2,6 +2,8 @@
 class SceneManager {
     constructor(engine) {
         this.scene = new BABYLON.Scene(engine);
+        // تفعيل الفيزياء والاصطدامات
+        this.scene.collisionsEnabled = true;
         this.setupEnvironment();
     }
 
@@ -12,23 +14,25 @@ class SceneManager {
         this.scene.fogDensity = 0.01;
         this.scene.fogColor = new BABYLON.Color3(0.01, 0.01, 0.02);
 
-        // الإضاءة
+        // الإضاءة (إضاءة موجهة لإظهار الظلال كما في RE4)
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.scene);
-        light.intensity = 0.6;
-        const dirLight = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-1, -2, -1), this.scene);
-        dirLight.intensity = 1.0;
+        light.intensity = 0.5;
+        
+        const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), this.scene);
+        dirLight.intensity = 0.8;
 
-        // الأرضية (بني رملي صريح)
+        // الأرضية (بني رملي صريح مع خاصية الاصطدام)
         const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 500, height: 500}, this.scene);
         const groundMat = new BABYLON.StandardMaterial("groundMat", this.scene);
-        groundMat.diffuseColor = Config.groundColor; // يأخذ اللون من ملف الإعدادات
+        groundMat.diffuseColor = Config.groundColor; 
         
-        // إضافة ملمس خشن (Noise)
+        // إضافة ملمس خشن للأرضية
         const noise = new BABYLON.NoiseProceduralTexture("noise", 512, this.scene);
-        noise.octaves = 4;
         groundMat.bumpTexture = noise;
         
         ground.material = groundMat;
+        
+        // تفعيل الاصطدام للأرضية لكي يمشي اللاعب عليها
         ground.checkCollisions = true;
         this.ground = ground;
     }

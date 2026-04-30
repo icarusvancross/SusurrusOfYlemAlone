@@ -2,45 +2,68 @@
 class PlayerManager {
     constructor(scene) {
         this.scene = scene;
-        this.mesh = null;
-        this.laser = null;
+        this.health = 100;
+        this.currentClip = 10;
+        this.totalAmmo = 50;
+        this.isAiming = false;
+        this.isKnifing = false;
+        this.moveSpeed = 0.15;
+        this.rotationX = 0;
+        
         this.createPlayer();
         this.createLaser();
     }
 
     createPlayer() {
-        // إنشاء المكعب باللون البني المحروق (0x4a1a1a)
-        this.mesh = BABYLON.MeshBuilder.CreateBox("Leon", {height: 2, width: 0.8, depth: 0.5}, this.scene);
-        const mat = new BABYLON.StandardMaterial("leonMat", this.scene);
-        mat.diffuseColor = new BABYLON.Color3(0.29, 0.1, 0.1); 
-        this.mesh.material = mat;
+        // إنشاء مجسم اللاعب (ليون)
+        this.mesh = BABYLON.MeshBuilder.CreateBox("player", {width: 1, height: 2, depth: 0.5}, this.scene);
         this.mesh.position.y = 1;
-        this.mesh.checkCollisions = true;
-        this.mesh.ellipsoid = new BABYLON.Vector3(0.4, 1, 0.4);
+        this.mesh.isVisible = true; // اجعله ظاهراً للتأكد من الحركة
     }
 
     createLaser() {
-        // الليزر الأحمر الخاص بالتصويب
+        // إنشاء شعاع الليزر
         this.laser = BABYLON.MeshBuilder.CreateLines("laser", {
-            points: [BABYLON.Vector3.Zero(), new BABYLON.Vector3(0, 0, 50)]
+            points: [new BABYLON.Vector3(0, 0, 0), new BABYLON.Vector3(0, 0, -40)]
         }, this.scene);
         this.laser.color = new BABYLON.Color3(1, 0, 0);
-        this.laser.parent = this.mesh;
-        this.laser.position = new BABYLON.Vector3(0.3, 0.6, 0.2); // موضع الليزر على الكتف
         this.laser.isVisible = false;
     }
 
-    update(inputVector, isAiming, speed) {
-        if (isAiming) {
-            this.laser.isVisible = true;
-        } else {
-            this.laser.isVisible = false;
-            if (inputVector.length() > 0) {
-                this.mesh.moveWithCollisions(inputVector.scale(speed));
-                // تدوير اللاعب باتجاه المشي بسلاسة
-                let targetRotation = Math.atan2(inputVector.x, inputVector.z);
-                this.mesh.rotation.y = BABYLON.Scalar.LerpAngle(this.mesh.rotation.y, targetRotation, 0.15);
+    update(moveVector, isAiming, speed) {
+        this.isAiming = isAiming;
+        this.updateHUD();
+
+        if (!this.isAiming && !this.isKnifing) {
+            // تحريك اللاعب بناءً على منطق WASD القديم
+            if (moveVector.length() > 0) {
+                this.mesh.moveWithCollisions(moveVector.scale(speed));
             }
+            this.laser.isVisible = false;
+        } else if (this.isAiming) {
+            this.updateLaser();
+        }
+    }
+
+    updateLaser() {
+        this.laser.isVisible = true;
+        // ربط موقع الليزر بموقع اللاعب واتجاهه
+        this.laser.position = this.mesh.position.clone();
+        this.laser.rotationQuaternion = this.mesh.rotationQuaternion;
+    }
+
+    updateHUD() {
+        const ammoText = document.getElementById('ammo-count');
+        if(ammoText) ammoText.innerText = this.currentClip + " / " + this.totalAmmo;
+        
+        const bar = document.getElementById('health-bar-fill');
+        if(bar) {
+            bar.style.width = this.health + "%";
+            // تطبيق منطق الألوان القديم حرفياً
+            if (this.health >= 75) bar.style.backgroundColor = "#00ff00";
+            else if (this.health >= 50) bar.style.backgroundColor = "#0088ff";
+            else if (this.health >= 25) bar.style.backgroundColor = "#ffaa00";
+            else bar.style.backgroundColor = "#ff0000";
         }
     }
 }
